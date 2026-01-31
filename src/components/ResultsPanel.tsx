@@ -1,10 +1,24 @@
 import React from 'react';
-import type { LoanResult } from '../logic/loanCalculations';
+import type { DTIResult } from '../logic/dtiCalculations';
 
 interface ResultsPanelProps {
-    result: LoanResult;
-    paymentFrequency: 'monthly' | 'biweekly';
+    result: DTIResult;
 }
+
+const getRatingColor = (rating: DTIResult['dtiRating']): { bg: string; border: string; text: string } => {
+    switch (rating) {
+        case 'excellent':
+            return { bg: 'linear-gradient(to bottom, #F0FDF4, #DCFCE7)', border: '#86EFAC', text: '#166534' };
+        case 'good':
+            return { bg: 'linear-gradient(to bottom, #F0F9FF, #E0F2FE)', border: '#7DD3FC', text: '#0369A1' };
+        case 'fair':
+            return { bg: 'linear-gradient(to bottom, #FFFBEB, #FEF3C7)', border: '#FCD34D', text: '#92400E' };
+        case 'high':
+            return { bg: 'linear-gradient(to bottom, #FFF7ED, #FFEDD5)', border: '#FDBA74', text: '#C2410C' };
+        case 'very_high':
+            return { bg: 'linear-gradient(to bottom, #FEF2F2, #FEE2E2)', border: '#FCA5A5', text: '#B91C1C' };
+    }
+};
 
 const formatCurrency = (val: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -14,39 +28,55 @@ const formatCurrency = (val: number) => {
     }).format(val);
 };
 
-export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, paymentFrequency }) => {
-    const isMonthly = paymentFrequency === 'monthly';
-    const paymentAmount = isMonthly ? result.monthlyPayment : result.biweeklyPayment;
-    const paymentLabel = isMonthly ? 'Estimated Monthly Loan Payment' : 'Estimated Bi-Weekly Loan Payment';
+export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result }) => {
+    const colors = getRatingColor(result.dtiRating);
 
     return (
-        <div className="card" style={{ background: 'linear-gradient(to bottom, #F0F9FF, #E8F4FD)', borderColor: '#93C5FD', boxShadow: '0 2px 8px -2px rgba(14, 165, 233, 0.15)' }}>
+        <div className="card" style={{ background: colors.bg, borderColor: colors.border, boxShadow: '0 2px 8px -2px rgba(0, 0, 0, 0.1)' }}>
             <div className="text-center">
                 <h2 style={{ fontSize: '1rem', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-2)' }}>
-                    {paymentLabel}
+                    Estimated Back-End DTI Ratio
                 </h2>
-                <div style={{ fontSize: '2.75rem', fontWeight: 800, color: '#0C4A6E', lineHeight: 1, letterSpacing: '-0.025em' }}>
-                    {formatCurrency(paymentAmount)}
+                <div style={{ fontSize: '2.75rem', fontWeight: 800, color: colors.text, lineHeight: 1, letterSpacing: '-0.025em' }}>
+                    {result.backEndDTI.toFixed(1)}%
+                </div>
+                <div style={{
+                    fontSize: '1rem',
+                    fontWeight: 600,
+                    color: colors.text,
+                    marginTop: 'var(--space-2)',
+                    padding: 'var(--space-1) var(--space-3)',
+                    background: 'rgba(255,255,255,0.5)',
+                    borderRadius: 'var(--radius-md)',
+                    display: 'inline-block'
+                }}>
+                    {result.dtiRatingLabel}
                 </div>
             </div>
 
-            <hr style={{ margin: 'var(--space-6) 0', border: 'none', borderTop: '1px solid #93C5FD' }} />
+            <hr style={{ margin: 'var(--space-6) 0', border: 'none', borderTop: `1px solid ${colors.border}` }} />
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--space-2)', textAlign: 'center' }}>
                 <div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 600 }}>PRINCIPAL</div>
-                    <div style={{ fontWeight: 700, fontSize: '1.125rem' }}>{formatCurrency(result.principalAmount)}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 600 }}>MONTHLY INCOME</div>
+                    <div style={{ fontWeight: 700, fontSize: '1.125rem' }}>{formatCurrency(result.monthlyIncome)}</div>
                 </div>
-                <div style={{ borderLeft: '1px solid #93C5FD', borderRight: '1px solid #93C5FD' }}>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 600 }}>TOTAL INTEREST</div>
-                    <div style={{ fontWeight: 700, fontSize: '1.125rem' }}>{formatCurrency(result.totalInterest)}</div>
+                <div style={{ borderLeft: `1px solid ${colors.border}`, borderRight: `1px solid ${colors.border}` }}>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 600 }}>TOTAL DEBT</div>
+                    <div style={{ fontWeight: 700, fontSize: '1.125rem' }}>{formatCurrency(result.totalMonthlyDebt)}</div>
                 </div>
                 <div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 600 }}>TOTAL COST</div>
-                    <div style={{ fontWeight: 700, fontSize: '1.125rem', color: 'var(--color-accent)' }}>
-                        {formatCurrency(result.totalLoanCost)}
+                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 600 }}>FRONT-END DTI</div>
+                    <div style={{ fontWeight: 700, fontSize: '1.125rem' }}>
+                        {result.frontEndDTI.toFixed(1)}%
                     </div>
                 </div>
+            </div>
+
+            <div style={{ marginTop: 'var(--space-4)', padding: 'var(--space-3)', background: 'rgba(255,255,255,0.6)', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
+                <span style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)' }}>
+                    {result.dtiRatingDescription}
+                </span>
             </div>
         </div>
     );

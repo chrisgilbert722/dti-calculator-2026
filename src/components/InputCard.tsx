@@ -1,97 +1,82 @@
 import React from 'react';
-import type { LoanInput } from '../logic/loanCalculations';
+import type { DTIInput } from '../logic/dtiCalculations';
 
 interface InputCardProps {
-    values: LoanInput;
-    onChange: (field: keyof LoanInput, value: number | boolean | string) => void;
+    values: DTIInput;
+    onChange: (field: keyof DTIInput, value: number | boolean) => void;
 }
 
 export const InputCard: React.FC<InputCardProps> = ({ values, onChange }) => {
     return (
         <div className="card">
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-                {/* Loan Amount */}
+                {/* Monthly Gross Income */}
                 <div>
-                    <label htmlFor="loanAmount">Loan Amount ($)</label>
+                    <label htmlFor="monthlyGrossIncome">Monthly Gross Income ($)</label>
                     <input
                         type="number"
-                        id="loanAmount"
-                        value={values.loanAmount}
-                        onChange={(e) => onChange('loanAmount', parseFloat(e.target.value) || 0)}
+                        id="monthlyGrossIncome"
+                        value={values.monthlyGrossIncome}
+                        onChange={(e) => onChange('monthlyGrossIncome', parseFloat(e.target.value) || 0)}
                         min="0"
                         step="100"
                     />
+                    <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                        Your total monthly income before taxes and deductions
+                    </span>
                 </div>
 
-                {/* Interest Rate */}
+                {/* Include Housing Separately Toggle */}
                 <div>
-                    <label htmlFor="interestRate">Interest Rate (APR %)</label>
-                    <input
-                        type="number"
-                        id="interestRate"
-                        value={values.interestRate}
-                        onChange={(e) => onChange('interestRate', parseFloat(e.target.value) || 0)}
-                        min="0"
-                        max="50"
-                        step="0.1"
-                    />
-                </div>
-
-                {/* Loan Term */}
-                <div>
-                    <label htmlFor="loanTermMonths">Loan Term (months)</label>
-                    <select
-                        id="loanTermMonths"
-                        value={values.loanTermMonths}
-                        onChange={(e) => onChange('loanTermMonths', parseInt(e.target.value))}
-                    >
-                        <option value={12}>12 months (1 year)</option>
-                        <option value={24}>24 months (2 years)</option>
-                        <option value={36}>36 months (3 years)</option>
-                        <option value={48}>48 months (4 years)</option>
-                        <option value={60}>60 months (5 years)</option>
-                        <option value={72}>72 months (6 years)</option>
-                        <option value={84}>84 months (7 years)</option>
-                    </select>
-                </div>
-
-                {/* Origination Fee */}
-                <div>
-                    <label htmlFor="originationFee">
-                        Origination Fee ({values.originationFeePercent ? '%' : '$'})
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', cursor: 'pointer' }}>
+                        <input
+                            type="checkbox"
+                            checked={values.includeHousingSeparately}
+                            onChange={(e) => onChange('includeHousingSeparately', e.target.checked)}
+                        />
+                        <span>Track housing payment separately (for front-end DTI)</span>
                     </label>
-                    <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center' }}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)', display: 'block' }}>
+                        Enable to calculate both front-end and back-end DTI ratios
+                    </span>
+                </div>
+
+                {/* Housing Payment (conditional) */}
+                {values.includeHousingSeparately && (
+                    <div>
+                        <label htmlFor="housingPayment">Monthly Housing Payment ($)</label>
                         <input
                             type="number"
-                            id="originationFee"
-                            value={values.originationFee}
-                            onChange={(e) => onChange('originationFee', parseFloat(e.target.value) || 0)}
+                            id="housingPayment"
+                            value={values.housingPayment}
+                            onChange={(e) => onChange('housingPayment', parseFloat(e.target.value) || 0)}
                             min="0"
-                            step={values.originationFeePercent ? 0.5 : 50}
-                            style={{ flex: 1 }}
+                            step="100"
                         />
-                        <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)', marginBottom: 0, cursor: 'pointer' }}>
-                            <input
-                                type="checkbox"
-                                checked={values.originationFeePercent}
-                                onChange={(e) => onChange('originationFeePercent', e.target.checked)}
-                            />
-                            <span style={{ fontSize: '0.8125rem' }}>%</span>
-                        </label>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                            Rent or mortgage payment (including taxes, insurance, HOA if applicable)
+                        </span>
                     </div>
-                </div>
+                )}
 
-                {/* Payment Frequency */}
+                {/* Monthly Debt Payments */}
                 <div>
-                    <label htmlFor="paymentFrequency">Payment Frequency</label>
-                    <select
-                        id="paymentFrequency"
-                        value={values.paymentFrequency}
-                        onChange={(e) => onChange('paymentFrequency', e.target.value as 'monthly' | 'biweekly')}
-                    >
-                        <option value="monthly">Monthly</option>
-                        <option value="biweekly">Bi-Weekly (every 2 weeks)</option>
-                    </select>
+                    <label htmlFor="monthlyDebtPayments">
+                        {values.includeHousingSeparately ? 'Other Monthly Debt Payments ($)' : 'Total Monthly Debt Payments ($)'}
+                    </label>
+                    <input
+                        type="number"
+                        id="monthlyDebtPayments"
+                        value={values.monthlyDebtPayments}
+                        onChange={(e) => onChange('monthlyDebtPayments', parseFloat(e.target.value) || 0)}
+                        min="0"
+                        step="50"
+                    />
+                    <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                        {values.includeHousingSeparately
+                            ? 'Car loans, student loans, credit cards, personal loans, etc. (excluding housing)'
+                            : 'All debt payments including housing, car loans, student loans, credit cards, etc.'}
+                    </span>
                 </div>
             </div>
         </div>

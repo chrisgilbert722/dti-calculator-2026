@@ -1,10 +1,8 @@
 import React from 'react';
-import type { LoanResult } from '../logic/loanCalculations';
+import type { DTIResult } from '../logic/dtiCalculations';
 
 interface BreakdownTableProps {
-    result: LoanResult;
-    loanTermMonths: number;
-    paymentFrequency: 'monthly' | 'biweekly';
+    result: DTIResult;
 }
 
 const formatMoney = (val: number) => {
@@ -16,41 +14,25 @@ const formatMoney = (val: number) => {
     }).format(val);
 };
 
-export const BreakdownTable: React.FC<BreakdownTableProps> = ({ result, loanTermMonths, paymentFrequency }) => {
-    const isMonthly = paymentFrequency === 'monthly';
-    const paymentAmount = isMonthly ? result.monthlyPayment : result.biweeklyPayment;
-    const paymentsPerYear = isMonthly ? 12 : 26;
-    const totalPayments = isMonthly ? loanTermMonths : Math.ceil((loanTermMonths / 12) * 26);
-
-    const paymentRows = [
-        {
-            label: isMonthly ? 'Estimated Monthly Payment' : 'Estimated Bi-Weekly Payment',
-            value: formatMoney(paymentAmount),
-            isTotal: false
-        },
-        {
-            label: 'Number of Payments',
-            value: `${totalPayments} ${isMonthly ? 'months' : 'bi-weekly payments'}`,
-            isTotal: false
-        },
-        {
-            label: 'Payments Per Year',
-            value: `${paymentsPerYear}`,
-            isTotal: false
-        },
+export const BreakdownTable: React.FC<BreakdownTableProps> = ({ result }) => {
+    const incomeDebtRows = [
+        { label: 'Estimated Monthly Gross Income', value: formatMoney(result.monthlyIncome), isTotal: false },
+        { label: 'Estimated Housing Payment', value: formatMoney(result.housingPayment), isTotal: false },
+        { label: 'Estimated Other Debt Payments', value: formatMoney(result.nonHousingDebt), isTotal: false },
+        { label: 'Estimated Total Monthly Debt', value: formatMoney(result.totalMonthlyDebt), isTotal: true },
     ];
 
-    const costRows = [
-        { label: 'Estimated Principal Amount', value: formatMoney(result.principalAmount), isTotal: false },
-        { label: 'Estimated Total Interest', value: formatMoney(result.totalInterest), isTotal: false },
-        { label: 'Estimated Origination Fees', value: formatMoney(result.originationFeeAmount), isTotal: false },
-        { label: 'Estimated Total Repayment', value: formatMoney(result.totalRepaymentAmount), isTotal: true },
+    const dtiRows = [
+        { label: 'Estimated Front-End DTI (Housing Only)', value: `${result.frontEndDTI.toFixed(1)}%`, isTotal: false },
+        { label: 'Estimated Back-End DTI (Total Debt)', value: `${result.backEndDTI.toFixed(1)}%`, isTotal: true },
     ];
 
-    const breakdownRows = [
-        { label: 'Principal Portion', value: `${result.principalPercent.toFixed(1)}%`, isTotal: false },
-        { label: 'Interest Portion', value: `${result.interestPercent.toFixed(1)}%`, isTotal: false },
-        { label: 'Fees Portion', value: `${result.feesPercent.toFixed(1)}%`, isTotal: false },
+    const thresholdRows = [
+        { label: 'Excellent DTI', value: '≤ 20%', isTotal: false },
+        { label: 'Good DTI', value: '20% - 36%', isTotal: false },
+        { label: 'Fair DTI', value: '36% - 43%', isTotal: false },
+        { label: 'High DTI', value: '43% - 50%', isTotal: false },
+        { label: 'Very High DTI', value: '> 50%', isTotal: false },
     ];
 
     const renderTable = (rows: Array<{ label: string; value: string; isTotal: boolean }>, isLast = false) => (
@@ -80,23 +62,23 @@ export const BreakdownTable: React.FC<BreakdownTableProps> = ({ result, loanTerm
 
     return (
         <div className="card" style={{ padding: '0' }}>
-            {/* Payment Details Section */}
+            {/* Income & Debt Section */}
             <div style={{ padding: 'var(--space-4) var(--space-6)', borderBottom: '1px solid var(--color-border)' }}>
-                <h3 style={{ fontSize: '1rem' }}>Estimated Payment Details</h3>
+                <h3 style={{ fontSize: '1rem' }}>Estimated Monthly Income & Debt</h3>
             </div>
-            {renderTable(paymentRows)}
+            {renderTable(incomeDebtRows)}
 
-            {/* Total Cost Section */}
+            {/* DTI Ratios Section */}
+            <div style={{ padding: 'var(--space-4) var(--space-6)', borderBottom: '1px solid var(--color-border)', borderTop: '1px solid var(--color-border)', background: '#F0F9FF' }}>
+                <h3 style={{ fontSize: '1rem', color: '#0369A1' }}>Estimated DTI Ratios</h3>
+            </div>
+            {renderTable(dtiRows)}
+
+            {/* Thresholds Section */}
             <div style={{ padding: 'var(--space-4) var(--space-6)', borderBottom: '1px solid var(--color-border)', borderTop: '1px solid var(--color-border)', background: '#F8FAFC' }}>
-                <h3 style={{ fontSize: '1rem' }}>Estimated Total Loan Costs</h3>
+                <h3 style={{ fontSize: '1rem', color: 'var(--color-text-secondary)' }}>Common DTI Thresholds</h3>
             </div>
-            {renderTable(costRows)}
-
-            {/* Cost Breakdown Section */}
-            <div style={{ padding: 'var(--space-4) var(--space-6)', borderBottom: '1px solid var(--color-border)', borderTop: '1px solid var(--color-border)', background: '#F0FDF4' }}>
-                <h3 style={{ fontSize: '1rem', color: '#166534' }}>Cost Breakdown (% of Total)</h3>
-            </div>
-            {renderTable(breakdownRows, true)}
+            {renderTable(thresholdRows, true)}
         </div>
     );
 };

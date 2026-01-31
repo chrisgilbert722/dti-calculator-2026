@@ -1,49 +1,49 @@
 import React from 'react';
-import type { LoanInput } from '../logic/loanCalculations';
+import type { DTIInput } from '../logic/dtiCalculations';
 
 interface ScenarioControlsProps {
-    values: LoanInput;
-    onChange: (field: keyof LoanInput, value: number | boolean | string) => void;
+    values: DTIInput;
+    onChange: (field: keyof DTIInput, value: number | boolean) => void;
 }
 
 export const ScenarioControls: React.FC<ScenarioControlsProps> = ({ values, onChange }) => {
-    const termOptions = [
-        { label: '2 yr', value: 24 },
-        { label: '3 yr', value: 36 },
-        { label: '5 yr', value: 60 },
-        { label: '7 yr', value: 84 },
+    const incomeOptions = [
+        { label: '$4,000', value: 4000 },
+        { label: '$6,000', value: 6000 },
+        { label: '$8,000', value: 8000 },
+        { label: '$10,000', value: 10000 },
     ];
 
-    const rateOptions = [
-        { label: '6%', value: 6 },
-        { label: '10%', value: 10 },
-        { label: '15%', value: 15 },
-        { label: '20%', value: 20 },
+    const debtOptions = [
+        { label: '$500', value: 500 },
+        { label: '$1,000', value: 1000 },
+        { label: '$1,500', value: 1500 },
+        { label: '$2,000', value: 2000 },
     ];
 
     return (
         <div className="card">
             <h3 style={{ marginBottom: 'var(--space-4)' }}>Quick Adjustments</h3>
 
-            {/* Term Quick Select */}
+            {/* Income Quick Select */}
             <div style={{ marginBottom: 'var(--space-4)' }}>
-                <label style={{ marginBottom: 'var(--space-2)' }}>Loan Term</label>
+                <label style={{ marginBottom: 'var(--space-2)' }}>Monthly Income</label>
                 <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-                    {termOptions.map((option) => (
+                    {incomeOptions.map((option) => (
                         <button
                             key={option.value}
                             type="button"
-                            onClick={() => onChange('loanTermMonths', option.value)}
+                            onClick={() => onChange('monthlyGrossIncome', option.value)}
                             style={{
                                 flex: 1,
                                 padding: 'var(--space-2) var(--space-3)',
                                 fontSize: '0.875rem',
                                 fontWeight: 500,
                                 border: '1px solid',
-                                borderColor: values.loanTermMonths === option.value ? 'var(--color-primary)' : 'var(--color-border)',
+                                borderColor: values.monthlyGrossIncome === option.value ? 'var(--color-primary)' : 'var(--color-border)',
                                 borderRadius: 'var(--radius-md)',
-                                background: values.loanTermMonths === option.value ? 'var(--color-primary)' : 'transparent',
-                                color: values.loanTermMonths === option.value ? '#fff' : 'var(--color-text-primary)',
+                                background: values.monthlyGrossIncome === option.value ? 'var(--color-primary)' : 'transparent',
+                                color: values.monthlyGrossIncome === option.value ? '#fff' : 'var(--color-text-primary)',
                                 cursor: 'pointer'
                             }}
                         >
@@ -53,25 +53,27 @@ export const ScenarioControls: React.FC<ScenarioControlsProps> = ({ values, onCh
                 </div>
             </div>
 
-            {/* Rate Quick Select */}
+            {/* Debt Quick Select */}
             <div>
-                <label style={{ marginBottom: 'var(--space-2)' }}>Interest Rate</label>
+                <label style={{ marginBottom: 'var(--space-2)' }}>
+                    {values.includeHousingSeparately ? 'Other Monthly Debt' : 'Total Monthly Debt'}
+                </label>
                 <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-                    {rateOptions.map((option) => (
+                    {debtOptions.map((option) => (
                         <button
                             key={option.value}
                             type="button"
-                            onClick={() => onChange('interestRate', option.value)}
+                            onClick={() => onChange('monthlyDebtPayments', option.value)}
                             style={{
                                 flex: 1,
                                 padding: 'var(--space-2) var(--space-3)',
                                 fontSize: '0.875rem',
                                 fontWeight: 500,
                                 border: '1px solid',
-                                borderColor: values.interestRate === option.value ? 'var(--color-primary)' : 'var(--color-border)',
+                                borderColor: values.monthlyDebtPayments === option.value ? 'var(--color-primary)' : 'var(--color-border)',
                                 borderRadius: 'var(--radius-md)',
-                                background: values.interestRate === option.value ? 'var(--color-primary)' : 'transparent',
-                                color: values.interestRate === option.value ? '#fff' : 'var(--color-text-primary)',
+                                background: values.monthlyDebtPayments === option.value ? 'var(--color-primary)' : 'transparent',
+                                color: values.monthlyDebtPayments === option.value ? '#fff' : 'var(--color-text-primary)',
                                 cursor: 'pointer'
                             }}
                         >

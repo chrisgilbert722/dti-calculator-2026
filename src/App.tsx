@@ -7,24 +7,22 @@ import { AdContainer } from './components/AdContainer';
 import { BreakdownTable } from './components/BreakdownTable';
 import { SEOText } from './components/SEOText';
 import { Footer } from './components/Footer';
-import { calculateLoan } from './logic/loanCalculations';
-import type { LoanInput } from './logic/loanCalculations';
+import { calculateDTI } from './logic/dtiCalculations';
+import type { DTIInput } from './logic/dtiCalculations';
 
 function App() {
-  const [values, setValues] = useState<LoanInput>({
-    loanAmount: 15000,
-    interestRate: 10,
-    loanTermMonths: 36,
-    originationFee: 3,
-    originationFeePercent: true,
-    paymentFrequency: 'monthly'
+  const [values, setValues] = useState<DTIInput>({
+    monthlyGrossIncome: 6000,
+    monthlyDebtPayments: 1500,
+    housingPayment: 1500,
+    includeHousingSeparately: true
   });
 
-  const handleChange = (field: keyof LoanInput, value: number | boolean | string) => {
+  const handleChange = (field: keyof DTIInput, value: number | boolean) => {
     setValues(prev => ({ ...prev, [field]: value }));
   };
 
-  const result = calculateLoan(values);
+  const result = calculateDTI(values);
 
   return (
     <>
@@ -37,7 +35,7 @@ function App() {
         <InputCard values={values} onChange={handleChange} />
 
         {/* 3) RESULTS PANEL */}
-        <ResultsPanel result={result} paymentFrequency={values.paymentFrequency} />
+        <ResultsPanel result={result} />
 
         {/* 4) SCENARIO CONTROLS */}
         <ScenarioControls values={values} onChange={handleChange} />
@@ -46,7 +44,7 @@ function App() {
         <AdContainer slotId="native-slot-placeholder" sticky={false} />
 
         {/* 6) BREAKDOWN TABLE */}
-        <BreakdownTable result={result} loanTermMonths={values.loanTermMonths} paymentFrequency={values.paymentFrequency} />
+        <BreakdownTable result={result} />
 
         {/* 7) SEO TEXT */}
         <SEOText />
